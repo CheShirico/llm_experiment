@@ -62,3 +62,25 @@ o200k  kk:       Ж | ас | анды |  интеллект |  адамдар | 
 
 - One short sentence per language, so exact numbers are anecdotal; the Kazakh sentence was written by Claude (not checked by a native speaker) and is a free translation, not a word-for-word one (10 words vs 9).
 - These are OpenAI tokenizers, not Claude's. Claude's counts will differ.
+
+## Experiment 2 — randomness
+
+Raw answers: `results/exp02_coffee_names.md`
+
+Prompt `Придумай название для кофейни`, asked 3 times, each in a fresh session with empty context (model: Claude Sonnet 5.5).
+
+| | Chat 1 | Chat 2 | Chat 3 |
+|---|---|---|---|
+| Format | 8 numbered names + reasons | 15 names in 4 categories | 8 numbered names + reasons |
+| Final pick | «Зерно и Час» | «Третья чашка» (top-3 list) | «Крема» |
+
+Comparison:
+- **The three final picks are all different**, so the "answer" is not stable across runs.
+- **Exact repeats:** «Зерно и Час» (chats 1 and 3, both as item 1) and «Обжарка №7» (chats 1 and 3). 29 unique names out of 31 total.
+- **Near repeats:** «Крем» / «Крема» appears in all three chats, «Обжарка» in all three (with and without «№7»). The same neighbourhood of ideas (grain, roast, crema, time, "Ко") comes up each time: the model's high-probability region is narrow, the exact choice within it is random.
+- **Structure differs too:** the number of options (8 vs 15), grouping, and the offer of follow-up help vary from run to run.
+- Surprisingly the single most "typical" idea was not the one picked as best every time: «Крема» is the favourite of chat 3 but only a side option elsewhere.
+
+Caveats:
+- Runs were made as Claude Code subagents (no API key / claude.ai chat available), which carry a default Claude Code system prompt; a real fresh chat in claude.ai may behave slightly differently.
+- Only 3 samples; sampling temperature is the default and was not controlled.
