@@ -1,6 +1,14 @@
 # llm_experiment
 
-Experiments with LLM tokenization. Results are stored in `results/`.
+Experiments with LLM tokenization and randomness. Results are stored in `results/`.
+
+## Summary
+
+| # | Experiment | Key result | Details |
+|---|------------|------------|---------|
+| 1 | Same sentence in EN / RU / RU in Latin letters / KK through 8 tokenizers (OpenAI, Qwen3, DeepSeek-V3, Llama 3, Gemma 3, Mistral Nemo, GLM-4.5) | English is 10–11 tokens everywhere; Russian costs 1.5–2.7x more; Russian in Latin letters 2.3–2.6x with every tokenizer; Kazakh ranges from 19 to 59 tokens depending on the tokenizer. Claude not measured yet (needs `ANTHROPIC_API_KEY`). | [Experiment 1](#experiment-1--the-same-phrase-in-different-languages-many-tokenizers) |
+| 2 | Randomness: "Придумай название для кофейни" x3 in fresh sessions | Three different final picks; some names and word roots repeat (Зерно и Час, Обжарка, Крема). | [Experiment 2](#experiment-2--randomness) |
+| 3 | Randomness: name for a horned skull mascot of a tavern x3 | Three different final picks, no identical full name in all lists, but the same building blocks (Рогволд, Бальтазар, Скальд, «Рог-»). | [Experiment 3](#experiment-3--randomness-name-for-a-horned-skull-mascot) |
 
 ## Setup
 
