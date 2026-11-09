@@ -84,3 +84,28 @@ Comparison:
 Caveats:
 - Runs were made as Claude Code subagents (no API key / claude.ai chat available), which carry a default Claude Code system prompt; a real fresh chat in claude.ai may behave slightly differently.
 - Only 3 samples; sampling temperature is the default and was not controlled.
+
+## Experiment 3 — randomness: name for a horned skull mascot
+
+Raw answers: `results/exp03_skull_mascot_names.md`
+
+Prompt `Придумай имя черепу животного с рогами, который является маскотом, висящего в баре-таверне`, asked 3 times, each in a fresh session with empty context (model: Claude Sonnet 5.5).
+
+| | Chat 1 | Chat 2 | Chat 3 |
+|---|---|---|---|
+| Final pick | Рогволд Костяной | Скальд Рогатый | Бальтазар Рогатый |
+| Names offered | 9 (flat list) | 19 (4 groups, incl. English) | 18 (4 groups, incl. English) |
+
+Comparison:
+- **The three final picks are all different**, and there is not a single identical full name that appears in all three lists. Across the chats there are 46 names in total.
+- **But the building blocks repeat:**
+  - «Рогволд» is in all three chats (Рогволд Костяной / Рогволд Безмолвный / Рогволд).
+  - «Бальтазар» is in all three chats (Бальтазар Безгубый / Бальтазар Рогоносец / Бальтазар Рогатый).
+  - «Скальд» in 2 of 3 (Скальд Рогатый / Скальд Безглазый); «Grimhorn» in 2 of 3 (and «Грим Рогатый»); «Рогоносец» in 2 of 3.
+  - Name patterns: «Рог-» root, the suffix «Рогатый/Рогач», «Кост-» (Костоглот, Костеглав, Костяной Боря, Костян), «Хмель-/Хмельной», "Старина/Дядя".
+- **Same as in experiment 2:** the model keeps coming back to the same small set of "obvious" ideas (Norse-sounding names with a horn pun), but which one it picks as the best varies. Names are assembled from the same parts in different combinations.
+- **Structure is stable here:** each chat gave one favourite plus alternatives, and every chat ended with an offer to clarify the animal (deer / ram / bull / goat) and the style of the tavern. Only the number of options (9 vs 19 vs 18) and the grouping differ. Chat 1 addressed the user informally («ты»), the others formally.
+
+Caveats:
+- Same as experiment 2: runs were made as Claude Code subagents, not claude.ai chats; only 3 samples; sampling temperature was not controlled.
+- «Overlap» was judged by hand on word roots, not with a formal metric.
