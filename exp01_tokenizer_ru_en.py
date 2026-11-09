@@ -14,6 +14,8 @@ sys.stdout.reconfigure(encoding="utf-8")
 PHRASES = {
     "ru": "Искусственный интеллект меняет то, как люди работают и учатся.",
     "en": "Artificial intelligence is changing how people work and learn.",
+    "ru_latin": "Iskusstvennyj intellekt menyaet to, kak lyudi rabotayut i uchatsya.",
+    "kk": "Жасанды интеллект адамдардың жұмыс істеу және оқу тәсілін өзгертіп жатыр.",
 }
 ENCODINGS = ["cl100k_base", "o200k_base"]  # GPT-4 / GPT-4o families
 
@@ -25,6 +27,14 @@ def tokenize(enc, text):
     return ids, pieces
 
 
+def show_piece(raw: bytes) -> str:
+    """Text of a token; if it is a fragment of a multi-byte char, show hex bytes like <d0 b6>."""
+    try:
+        return raw.decode("utf-8")
+    except UnicodeDecodeError:
+        return "<" + raw.hex(" ") + ">"
+
+
 def main():
     results = {}
     for enc_name in ENCODINGS:
@@ -33,7 +43,7 @@ def main():
         print(f"=== {enc_name} ===")
         for lang, text in PHRASES.items():
             ids, pieces = tokenize(enc, text)
-            shown = [p.decode("utf-8", errors="replace") for p in pieces]
+            shown = [show_piece(p) for p in pieces]
             results[enc_name][lang] = {
                 "text": text,
                 "chars": len(text),
@@ -46,9 +56,14 @@ def main():
             print(f"[{lang}] {len(text)} chars, {len(text.split())} words -> {len(ids)} tokens "
                   f"({len(text) / len(ids):.2f} chars/token)")
             print("   " + " | ".join(shown))
-        ratio = results[enc_name]["ru"]["tokens"] / results[enc_name]["en"]["tokens"]
-        results[enc_name]["ru_to_en_token_ratio"] = round(ratio, 2)
-        print(f"   RU/EN token ratio: {ratio:.2f}\n")
+        en_tokens = results[enc_name]["en"]["tokens"]
+        ratios = {
+            lang: round(results[enc_name][lang]["tokens"] / en_tokens, 2)
+            for lang in PHRASES
+            if lang != "en"
+        }
+        results[enc_name]["token_ratio_vs_en"] = ratios
+        print("   token ratio vs EN: " + ", ".join(f"{k}={v:.2f}" for k, v in ratios.items()) + "\n")
 
     out = Path(__file__).parent / "results"
     out.mkdir(exist_ok=True)
