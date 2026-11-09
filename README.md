@@ -6,12 +6,13 @@ Experiments with LLM tokenization. Results are stored in `results/`.
 
 ```bash
 python -m venv .venv
-.venv/Scripts/python -m pip install tiktoken   # Linux/macOS: .venv/bin/python
+.venv/Scripts/python -m pip install -r requirements.txt   # Linux/macOS: .venv/bin/python
+# optional, for Claude token counts: export ANTHROPIC_API_KEY=...
 ```
 
-## Experiment 1 — the same phrase in different languages
+## Experiment 1 — the same phrase in different languages, many tokenizers
 
-Script: `exp01_tokenizer_ru_en.py` · Data: `results/exp01_tokenizer_ru_en.json`
+Script: `exp01_tokenizer_ru_en.py` · Data (with all token ids and splits): `results/exp01_tokenizer_ru_en.json`
 
 One sentence ("Artificial intelligence is changing how people work and learn") in four variants:
 
@@ -22,46 +23,45 @@ One sentence ("Artificial intelligence is changing how people work and learn") i
 | `ru_latin` | Iskusstvennyj intellekt menyaet to, kak lyudi rabotayut i uchatsya.  | 67    | 9     |
 | `kk`       | Жасанды интеллект адамдардың жұмыс істеу және оқу тәсілін өзгертіп жатыр. | 73 | 10 |
 
-Tokenizers: `tiktoken` 0.14.0 (OpenAI BPE encodings).
+Tokenizers:
+- OpenAI, `tiktoken` 0.14.0: `cl100k_base` (GPT-4), `o200k_base` (GPT-4o / GPT-5 family).
+- Open-weight models, `tokenizer.json` from Hugging Face: Qwen3 (`Qwen/Qwen3-8B`), DeepSeek-V3, Llama 3.x (Llama-3.2, via the ungated `unsloth` mirror), Gemma 3 (`unsloth` mirror), Mistral Nemo ("Tekken"), GLM-4.5.
+- **Claude (Anthropic): not measured yet.** Claude's tokenizer is not published; the only way is the `count_tokens` API, which needs `ANTHROPIC_API_KEY`. The code is already in the script and runs automatically when the key is set (models `claude-haiku-5-5`, `claude-sonnet-5-5`, `claude-opus-5-5`, `claude-fable-5-1`; the fixed per-message overhead of the API is subtracted).
 
-### Token counts
+### Token counts (ratio vs English in brackets)
 
-| Variant    | `cl100k_base` tokens | ratio vs EN | `o200k_base` tokens | ratio vs EN |
-|------------|----------------------|-------------|---------------------|-------------|
-| `en`       | 11                   | 1.00        | 10                  | 1.00        |
-| `ru`       | 30                   | 2.73        | 16                  | 1.60        |
-| `ru_latin` | 27                   | 2.45        | 26                  | 2.60        |
-| `kk`       | 59                   | 5.36        | 19                  | 1.90        |
+| Tokenizer      | en | ru          | ru_latin    | kk          |
+|----------------|----|-------------|-------------|-------------|
+| `cl100k_base`  | 11 | 30 (2.73)   | 27 (2.45)   | 59 (5.36)   |
+| `o200k_base`   | 10 | 16 (1.60)   | 26 (2.60)   | 19 (1.90)   |
+| Qwen3          | 11 | 20 (1.82)   | 27 (2.45)   | 44 (4.00)   |
+| DeepSeek-V3    | 10 | 20 (2.00)   | 26 (2.60)   | 40 (4.00)   |
+| Llama 3.x      | 11 | 21 (1.91)   | 26 (2.36)   | 49 (4.45)   |
+| Gemma 3        | 10 | 16 (1.60)   | 25 (2.50)   | 29 (2.90)   |
+| Mistral Nemo   | 11 | 19 (1.73)   | 25 (2.27)   | 30 (2.73)   |
+| GLM-4.5        | 11 | 16 (1.45)   | 27 (2.45)   | 46 (4.18)   |
 
-Characters per token: `cl100k_base` — en 5.64, ru 2.07, ru_latin 2.48, kk 1.24; `o200k_base` — en 6.20, ru 3.88, ru_latin 2.58, kk 3.84.
-
-### Token splits
-
-`<xx>` is a raw byte: the token is only a fragment of a multi-byte UTF-8 character.
+Example splits of the Russian sentence (`<xx>` = raw byte, a fragment of a multi-byte UTF-8 character; full splits for all tokenizers are in the JSON):
 
 ```
-cl100k en:       Art | ificial |  intelligence |  is |  changing |  how |  people |  work |  and |  learn | .
-cl100k ru:       И | с | ку | с | ств | ен | ный |  ин | т | ел | л | ект |  мен | я | ет |  то | , |  как |  лю | д | и |  работ | а | ют |  и |  у | ч | ат | ся | .
-cl100k ru_latin: Is | kus | st | ven | ny | j |  int | elle | kt |  men | ya | et |  to | , |  kak |  ly | udi |  rab | ot | ay | ut |  i |  u | ch | ats | ya | .
-cl100k kk:       <d0> | <96> | ас | анд | ы |  ин | т | ел | л | ект |  а | д | ам | д | ар | д | ы | <d2> | <a3> |  ж | <d2> | <b1> | м | ы | с |  і | ст | е | у |  ж | <d3> | <99> | не |  о | <d2> | <9b> | у |  т | <d3> | <99> | с | і | л | і | н |   | <d3> | <a9> | з | г | ер | т | і | п |  ж | ат | ы | р | .
-
-o200k  en:       Artificial |  intelligence |  is |  changing |  how |  people |  work |  and |  learn | .
-o200k  ru:       И | ск | ус | ственный |  интеллект |  меня | ет |  то | , |  как |  люди |  работают |  и |  уч | атся | .
-o200k  ru_latin: Is | kus | st | ven | ny | j |  int | elle | kt |  men | ya | et |  to | , |  kak |  ly | udi |  rab | ot | ay | ut |  i |  uch | ats | ya | .
-o200k  kk:       Ж | ас | анды |  интеллект |  адамдар | дың |  жұмыс |  і | сте | у |  және |  оқу |  тәс | іл | ін |  өзгер | тіп |  жатыр | .
+cl100k_base: И | с | ку | с | ств | ен | ный |  ин | т | ел | л | ект |  мен | я | ет |  то | , |  как |  лю | д | и |  работ | а | ют |  и |  у | ч | ат | ся | .
+o200k_base:  И | ск | ус | ственный |  интеллект |  меня | ет |  то | , |  как |  люди |  работают |  и |  уч | атся | .
+gemma3:      И | скус | ственный |  интел | лект |  меня | ет |  то | , |  как |  люди |  работают |  и |  уча | тся | .
 ```
 
 ### Findings
 
-- **Russian vs English.** With `cl100k_base` Russian costs 2.7x more tokens; Russian words are cut into syllable-like pieces, sometimes single letters. The newer `o200k_base` (bigger vocabulary) narrows this to 1.6x: `интеллект`, `работают` become single tokens.
-- **Russian in Latin letters (translit).** It does *not* help: 27 / 26 tokens, about as bad as Cyrillic under `cl100k_base` and clearly worse than Cyrillic under `o200k_base` (26 vs 16). Transliterated words are not real words for the tokenizer, so they are chopped into meaningless fragments (`Is | kus | st | ven | ny | j`). It is also longer in characters (67 vs 62).
-- **Kazakh.** The worst case under `cl100k_base`: 59 tokens (5.4x English), 1.24 chars/token. Kazakh-specific letters (`ұ`, `ң`, `ө`, `ә`, `қ`, `ғ`) are not in the vocabulary, so they fall apart into raw bytes (`<d2> | <b1>`): one letter costs 2 tokens. `o200k_base` fixes most of this (19 tokens, 1.9x), with letters like `ұ`, `қ`, `ө` now covered.
-- **Takeaway.** The tokenizer vocabulary matters more than the language itself: the gap between languages shrank a lot between `cl100k_base` and `o200k_base`, and the Kazakh result went from 59 to 19 tokens.
+- **English is stable:** 10–11 tokens in every tokenizer.
+- **Russian costs 1.5–2.7x more.** The newest/most multilingual vocabularies are best: GLM-4.5, `o200k_base` and Gemma 3 need 16 tokens, the Qwen3 / DeepSeek / Llama / Mistral group 19–21, and the old `cl100k_base` 30.
+- **Russian in Latin letters (translit) never helps.** 25–27 tokens everywhere (2.3–2.6x English), because the tokenizer sees non-words and chops them into fragments (`Is | kus | st | ven | ny | j`). Only for `cl100k_base` it is slightly cheaper than Cyrillic (27 vs 30); in all newer tokenizers Cyrillic is cheaper (16–21).
+- **Kazakh shows the biggest spread: 19 to 59 tokens for the same sentence.** `o200k_base` (19), Gemma 3 (29) and Mistral Nemo (30) handle it well. Llama 3.x, Qwen3, DeepSeek-V3 and GLM-4.5 need 40–49 tokens (4.0–4.5x English). Llama 3 still falls back to raw bytes for the Kazakh-specific letters (`ұ`, `ә`, `қ`, `ө`, `ң`); Qwen3 has single tokens for those letters but cuts the words into single letters.
+- **A bigger or newer vocabulary is not automatically better for a language:** what matters is how much Kazakh/Russian text the vocabulary was built on. Llama 3 (128k vocabulary) is better than `cl100k_base` for Russian but still poor for Kazakh.
 
 ### Caveats
 
-- One short sentence per language, so exact numbers are anecdotal; the Kazakh sentence was written by Claude (not checked by a native speaker) and is a free translation, not a word-for-word one (10 words vs 9).
-- These are OpenAI tokenizers, not Claude's. Claude's counts will differ.
+- One short sentence per language, so exact numbers are anecdotal. The Kazakh sentence was written by Claude (not checked by a native speaker) and is a free translation (10 words vs 9).
+- Llama 3.x and Gemma 3 were loaded from `unsloth` mirrors of the official tokenizers; the mirrors are expected to be identical, but this was not verified against the official gated repositories.
+- Token counts are for the bare text, without chat templates or special tokens.
 
 ## Experiment 2 — randomness
 
